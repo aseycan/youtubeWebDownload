@@ -48,9 +48,12 @@ async def index():
                 app.logger.info(f"Downloading video from URL: {url} with options: {ydl_opts}")
                 info, temp_filename = await download_video(url, ydl_opts)
 
-                title = sanitize_filename(info.get('title', 'video'))
-                file_extension = '.mp3' if format == 'mp3' else '.mp4'
-                unique_filename = f"{title}_{uuid.uuid4().hex[:8]}{file_extension}"
+                original_filename = os.path.basename(temp_filename)
+                sanitized_filename = sanitize_filename(original_filename)
+
+                file_extension = os.path.splitext(original_filename)[1]
+                unique_filename = f"{sanitized_filename}_{uuid.uuid4().hex[:8]}{file_extension}"
+
                 full_file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
 
                 os.rename(temp_filename, full_file_path)
@@ -59,10 +62,11 @@ async def index():
                 file_url = url_for('download_file', filename=unique_filename, _external=True)
                 return jsonify({
                     'url': file_url,
-                    'filename': os.path.basename(unique_filename),
+                    'filename': unique_filename,
                     'title': info.get('title'),
                     'duration': info.get('duration'),
-                    'thumbnail': info.get('thumbnail')
+                    'thumbnail': info.get('thumbnail'),
+                    'status': 'İndirme tamamlandı!'  # Bu satır güncellendi
                 })
             except Exception as e:
                 app.logger.error(f"İndirme hatası: {str(e)}")

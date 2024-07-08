@@ -12,9 +12,7 @@ def is_valid_youtube_url(url):
 
 
 def sanitize_filename(filename):
-    filename = ''.join(c for c in filename if ord(c) < 128)
-    filename = filename.replace(' ', '_')
-    filename = re.sub(r'[^\w\-_\. ]', '', filename)
+    filename = re.sub(r'[<>:"/\\|?*]', '', filename)
     return filename[:50]
 
 

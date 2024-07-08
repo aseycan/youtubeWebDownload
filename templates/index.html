@@ -73,24 +73,18 @@
             border: 1px solid #ccc;
             border-radius: 4px;
         }
-        #loading {
+        #progress-bar {
+            width: 100%;
+            background-color: #f3f3f3;
             display: none;
-            text-align: center;
-            margin-top: 20px;
         }
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3498db;
-            border-radius: 50%;
-            width: 30px;
+        #progress {
+            width: 0%;
             height: 30px;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-            margin-right: 10px;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            background-color: #4CAF50;
+            text-align: center;
+            line-height: 30px;
+            color: white;
         }
     </style>
 </head>
@@ -127,9 +121,8 @@
             </div>
         </form>
 
-        <div id="loading">
-            <div class="spinner"></div>
-            <span>İndirme işlemi başladı. Lütfen bekleyin...</span>
+        <div id="progress-bar" style="display: none;">
+            <div id="progress"></div>
         </div>
         <div id="status"></div>
         <div id="preview"></div>
@@ -149,8 +142,16 @@
 
         document.getElementById('download-form').addEventListener('submit', function(event) {
             event.preventDefault();
-            document.getElementById('loading').style.display = 'block';
-            document.getElementById('status').textContent = '';
+            const progressBar = document.getElementById('progress-bar');
+            const progress = document.getElementById('progress');
+            const status = document.getElementById('status');
+
+            progressBar.style.display = 'block';
+            progress.style.width = '0%';
+            progress.textContent = '0%';
+            status.textContent = 'İndirme işlemi başlatıldı...';
+
+            let downloadComplete = false;
 
             fetch(event.target.action, {
                 method: 'POST',
@@ -158,18 +159,40 @@
             })
             .then(response => response.json())
             .then(data => {
-                document.getElementById('loading').style.display = 'none';
                 if (data.error) {
                     throw new Error(data.error);
                 }
-                document.getElementById('status').textContent = 'İndirme işlemi tamamlandı. Dosya indiriliyor...';
-                window.location.href = data.url;  // Dosyayı otomatik olarak indir
+                downloadComplete = true;
+                status.textContent = data.status;
+                setTimeout(() => {
+                    window.location.href = data.url;
+                }, 1000); // 1 saniye bekle, sonra dosyayı indir
             })
             .catch(error => {
-                document.getElementById('loading').style.display = 'none';
                 console.error('Hata:', error);
-                document.getElementById('status').textContent = 'İndirme işlemi sırasında bir hata oluştu: ' + error.message;
+                status.textContent = 'İndirme işlemi sırasında bir hata oluştu: ' + error.message;
+            })
+            .finally(() => {
+                if (!downloadComplete) {
+                    progressBar.style.display = 'none';
+                }
             });
+
+            let currentProgress = 0;
+            const progressInterval = setInterval(() => {
+                if (downloadComplete) {
+                    clearInterval(progressInterval);
+                    progress.style.width = '100%';
+                    progress.textContent = '100%';
+                    return;
+                }
+
+                if (currentProgress < 90) {
+                    currentProgress += 5;
+                    progress.style.width = currentProgress + '%';
+                    progress.textContent = currentProgress + '%';
+                }
+            }, 500);
         });
 
         document.getElementById('url').addEventListener('input', function() {
