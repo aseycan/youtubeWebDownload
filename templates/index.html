@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Video İndirici</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-image: url('{{ url_for('static', filename='background.jpg') }}');
+            background-size: cover;
+            background-position: center;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #ff0000;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        label {
+            flex: 0 0 120px;
+            margin-right: 10px;
+            color: #333;
+        }
+        input, select, button {
+            flex: 1;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+        button {
+            background-color: #ff0000;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #cc0000;
+        }
+        #url {
+            margin-right: 10px;
+        }
+        #status {
+            margin-top: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+        #preview {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        #loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>YouTube Video İndirici</h1>
+        <form id="download-form" method="POST" action="/">
+            <div class="form-group">
+                <label for="url">YouTube URL:</label>
+                <input type="text" id="url" name="url" required>
+                <button type="button" onclick="pasteURL()">Yapıştır</button>
+            </div>
+
+            <div class="form-group">
+                <label for="quality">Video Kalitesi:</label>
+                <select id="quality" name="quality">
+                    <option value="highest">En Yüksek Kalite</option>
+                    <option value="720p">720p</option>
+                    <option value="480p">480p</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="format">Format:</label>
+                <select id="format" name="format">
+                    <option value="mp4">MP4 (Video)</option>
+                    <option value="mp3">MP3 (Ses)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label></label>
+                <button type="submit">İndir</button>
+            </div>
+        </form>
+
+        <div id="loading">
+            <div class="spinner"></div>
+            <span>İndirme işlemi başladı. Lütfen bekleyin...</span>
+        </div>
+        <div id="status"></div>
+        <div id="preview"></div>
+    </div>
+
+    <script>
+        function pasteURL() {
+            navigator.clipboard.readText()
+                .then(text => {
+                    document.getElementById('url').value = text;
+                })
+                .catch(err => {
+                    console.error('Yapıştırma hatası:', err);
+                    alert('URL yapıştırılamadı. Lütfen manuel olarak girin.');
+                });
+        }
+
+        document.getElementById('download-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('status').textContent = '';
+
+            fetch(event.target.action, {
+                method: 'POST',
+                body: new FormData(event.target)
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('loading').style.display = 'none';
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                document.getElementById('status').textContent = 'İndirme işlemi tamamlandı. Dosya indiriliyor...';
+                window.location.href = data.url;  // Dosyayı otomatik olarak indir
+            })
+            .catch(error => {
+                document.getElementById('loading').style.display = 'none';
+                console.error('Hata:', error);
+                document.getElementById('status').textContent = 'İndirme işlemi sırasında bir hata oluştu: ' + error.message;
+            });
+        });
+
+        document.getElementById('url').addEventListener('input', function() {
+            if (this.value.length > 10) {
+                fetch('/preview', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({url: this.value})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const preview = document.getElementById('preview');
+                    preview.innerHTML = `
+                        <img src="${data.thumbnail}" alt="Video thumbnail" style="max-width: 100%;">
+                        <p><strong>${data.title}</strong></p>
+                        <p>Süre: ${Math.floor(data.duration / 60)}:${(data.duration % 60).toString().padStart(2, '0')}</p>
+                    `;
+                })
+                .catch(error => {
+                    console.error('Önizleme hatası:', error);
+                    document.getElementById('preview').textContent = 'Video bilgileri yüklenemedi.';
+                });
+            } else {
+                document.getElementById('preview').innerHTML = '';
+            }
+        });
+    </script>
+</body>
+</html>
