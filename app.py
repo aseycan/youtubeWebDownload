@@ -9,7 +9,6 @@ from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from werkzeug.exceptions import HTTPException
-import yappi
 import uuid
 import yt_dlp
 
@@ -31,14 +30,13 @@ app.logger.addHandler(handler)
 @app.route('/', methods=['GET', 'POST'])
 @limiter.limit("10 per minute")
 async def index():
-    yappi.start()
     try:
         if request.method == 'POST':
             return await handle_post_request()
         return render_template('index.html')
-    finally:
-        yappi.stop()
-        yappi.get_func_stats().print_all()
+    except Exception as e:
+        app.logger.error(f"Beklenmeyen hata: {str(e)}")
+        return jsonify(error="Beklenmeyen bir hata oluştu"), 500
 
 async def handle_post_request():
     url = request.form['url']
@@ -72,7 +70,7 @@ async def handle_post_request():
             'title': info.get('title'),
             'duration': info.get('duration'),
             'thumbnail': info.get('thumbnail'),
-            'status': 'İndirme tamamlandı!'  # Bu satır güncellendi
+            'status': 'İndirme tamamlandı!'
         })
     except Exception as e:
         app.logger.error(f"İndirme hatası: {str(e)}")
@@ -114,7 +112,4 @@ schedule.every().day.do(clean_downloads)
 if __name__ == '__main__':
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
         os.makedirs(app.config['UPLOAD_FOLDER'])
-    app.run(debug=True)
-
-    if __name__ == '__main__':
-        app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
