@@ -9,6 +9,7 @@ from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from werkzeug.exceptions import HTTPException
+from werkzeug.utils import quote as url_quote  # Güncel import
 import uuid
 import yt_dlp
 
@@ -74,7 +75,7 @@ async def handle_post_request():
         })
     except Exception as e:
         app.logger.error(f"İndirme hatası: {str(e)}")
-        return jsonify({'error': f'Video indirme sırasında bir hata oluştu: {str(e)}'}), 500
+        return jsonify({'error': f'Video indirme sırasında bir hata oluştu: {str(e)}')}), 500
 
 @app.route('/download/<path:filename>')
 def download_file(filename):
