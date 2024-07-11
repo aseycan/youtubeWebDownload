@@ -96,7 +96,7 @@
             <div class="form-group">
                 <label for="url">YouTube URL:</label>
                 <input type="text" id="url" name="url" required>
-                <button type="button" onclick="pasteURL()">Yapıştır</button>
+                <button type="button" id="pasteButton">Yapıştır</button>
             </div>
 
             <div class="form-group">
@@ -130,16 +130,18 @@
     </div>
 
     <script>
-        function pasteURL() {
-            navigator.clipboard.readText()
-                .then(text => {
+        document.getElementById('pasteButton').addEventListener('click', function() {
+            if (navigator.clipboard && navigator.clipboard.readText) {
+                navigator.clipboard.readText().then(function(text) {
                     document.getElementById('url').value = text;
-                })
-                .catch(err => {
-                    console.error('Yapıştırma hatası:', err);
-                    alert('URL yapıştırılamadı. Lütfen manuel olarak girin.');
+                }).catch(function(err) {
+                    console.error('Failed to read clipboard contents: ', err);
+                    alert('Tarayıcınız otomatik yapıştırmaya izin vermiyor. Lütfen URL\'yi manuel olarak girin.');
                 });
-        }
+            } else {
+                alert('Tarayıcınız otomatik yapıştırmayı desteklemiyor. Lütfen URL\'yi manuel olarak girin.');
+            }
+        });
 
         document.getElementById('download-form').addEventListener('submit', function(event) {
             event.preventDefault();
