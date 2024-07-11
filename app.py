@@ -75,7 +75,8 @@ async def handle_post_request():
         })
     except Exception as e:
         app.logger.error(f"İndirme hatası: {str(e)}")
-        return jsonify({'error': f'Video indirme sırasında bir hata oluştu: {str(e)}')}), 500
+        return jsonify({'error': f'Video indirme sırasında bir hata oluştu: {str(e)}'}), 500
+
 
 @app.route('/download/<path:filename>')
 def download_file(filename):
