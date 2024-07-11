@@ -21,3 +21,5 @@ Beklenmeyen hata: [Errno 22] Invalid argument
 Ýndirme hatasý: Video indirme hatasý: expected str, bytes or os.PathLike object, not dict
 Ýndirme hatasý: Video indirme hatasý: expected str, bytes or os.PathLike object, not dict
 Ýndirme hatasý: Video indirme hatasý: expected str, bytes or os.PathLike object, not dict
+Beklenmeyen hata: ERROR: [generic] "Tarayýcýnýz otomatik yapýþtýrmayý desteklemiyor. Lütfen URL'yi manuel olarak girin." is not a valid URL. Set --default-search "ytsearch" (or run  yt-dlp "ytsearch:Tarayýcýnýz otomatik yapýþtýrmayý desteklemiyor. Lütfen URL'yi manuel olarak girin." ) to search YouTube
+Error removing file: [WinError 32] Dosya baþka bir iþlem tarafýndan kullanýldýðýndan bu iþlem dosyaya eriþemiyor: 'C:\\Users\\AS\\Downloads\\Uzi - Paranoya (Official Music Video).mp4_01376308.mp4'
