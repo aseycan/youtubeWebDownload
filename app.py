@@ -9,7 +9,6 @@ from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from werkzeug.exceptions import HTTPException
-from werkzeug.utils import quote as url_quote  # Güncel import
 import uuid
 import yt_dlp
 
@@ -77,7 +76,6 @@ async def handle_post_request():
         app.logger.error(f"İndirme hatası: {str(e)}")
         return jsonify({'error': f'Video indirme sırasında bir hata oluştu: {str(e)}'}), 500
 
-
 @app.route('/download/<path:filename>')
 def download_file(filename):
     return send_file(os.path.join(app.config['UPLOAD_FOLDER'], filename), as_attachment=True)
@@ -115,6 +113,3 @@ if __name__ == '__main__':
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
         os.makedirs(app.config['UPLOAD_FOLDER'])
     app.run(host='0.0.0.0', port=5000, debug=True)
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
