@@ -11,6 +11,7 @@ from flask_limiter.util import get_remote_address
 from werkzeug.exceptions import HTTPException
 import uuid
 import yt_dlp
+from urllib.parse import quote as url_quote
 
 from config import Config
 from downloader import is_valid_youtube_url, sanitize_filename, download_video, prepare_download_options

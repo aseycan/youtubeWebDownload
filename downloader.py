@@ -4,7 +4,7 @@ import asyncio
 import yt_dlp
 from werkzeug.utils import secure_filename
 import uuid
-
+from urllib.parse import quote as url_quote
 
 def is_valid_youtube_url(url):
     youtube_regex = r'(https?://)?(www\.)?(youtube|youtu|youtube-nocookie)\.(com|be)/(watch\?v=|embed/|v/|.+\?v=)?([^&=%\?]{11})'
