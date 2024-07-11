@@ -4,14 +4,14 @@ import logging
 from logging.handlers import RotatingFileHandler
 import asyncio
 import schedule
-from flask import Flask, render_template, request, send_file, jsonify, url_for
+from flask import Flask, render_template, request, send_file, jsonify, url_for, after_this_request
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from werkzeug.exceptions import HTTPException
 import uuid
 import yt_dlp
-
+from urllib.parse import quote as url_quote
 from config import Config
 from downloader import is_valid_youtube_url, sanitize_filename, download_video, prepare_download_options
 
@@ -27,6 +27,7 @@ handler = RotatingFileHandler('app.log', maxBytes=10000, backupCount=1)
 handler.setLevel(logging.INFO)
 app.logger.addHandler(handler)
 
+
 @app.route('/', methods=['GET', 'POST'])
 @limiter.limit("10 per minute")
 async def index():
@@ -37,6 +38,7 @@ async def index():
     except Exception as e:
         app.logger.error(f"Beklenmeyen hata: {str(e)}")
         return jsonify(error="Beklenmeyen bir hata oluştu"), 500
+
 
 async def handle_post_request():
     url = request.form['url']
@@ -76,9 +78,22 @@ async def handle_post_request():
         app.logger.error(f"İndirme hatası: {str(e)}")
         return jsonify({'error': f'Video indirme sırasında bir hata oluştu: {str(e)}'}), 500
 
+
 @app.route('/download/<path:filename>')
 def download_file(filename):
-    return send_file(os.path.join(app.config['UPLOAD_FOLDER'], filename), as_attachment=True)
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+
+    @after_this_request
+    def remove_file(response):
+        try:
+            os.remove(file_path)
+            app.logger.info(f"File removed: {file_path}")
+        except Exception as error:
+            app.logger.error(f"Error removing file: {error}")
+        return response
+
+    return send_file(file_path, as_attachment=True)
+
 
 @app.route('/preview', methods=['POST'])
 async def preview():
@@ -91,12 +106,14 @@ async def preview():
             'thumbnail': info['thumbnail']
         })
 
+
 @app.errorhandler(Exception)
 def handle_exception(e):
     if isinstance(e, HTTPException):
         return jsonify(error=str(e)), e.code
     app.logger.error(f"Beklenmeyen hata: {str(e)}")
     return jsonify(error="Beklenmeyen bir hata oluştu"), 500
+
 
 def clean_downloads():
     for filename in os.listdir(app.config['UPLOAD_FOLDER']):
@@ -106,6 +123,7 @@ def clean_downloads():
                 os.remove(file_path)
         except Exception as e:
             app.logger.error(f"Temizleme hatası: {str(e)}")
+
 
 schedule.every().day.do(clean_downloads)
 
