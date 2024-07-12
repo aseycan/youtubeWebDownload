@@ -22,3 +22,5 @@ Beklenmeyen hata: [Errno 22] Invalid argument
 Ýndirme hatasý: Video indirme hatasý: expected str, bytes or os.PathLike object, not dict
 Ýndirme hatasý: Video indirme hatasý: expected str, bytes or os.PathLike object, not dict
 Beklenmeyen hata: prepare_download_options() missing 1 required positional argument: 'upload_folder'
+Beklenmeyen hata: prepare_download_options() missing 1 required positional argument: 'upload_folder'
+Beklenmeyen hata: prepare_download_options() missing 1 required positional argument: 'upload_folder'
