@@ -2,7 +2,7 @@ import hmac
 import hashlib
 import subprocess
 import logging
-from flask import Flask, request, abort
+from flask import Flask, request, abort, jsonify
 
 app = Flask(__name__)
 
@@ -22,13 +22,16 @@ def verify_signature(payload_body, secret_token, signature_header):
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
-    # signature = request.headers.get('X-Hub-Signature-256')
-    # logger.info(f"Received signature: {signature}")
-    # logger.info(f"Received payload: {request.data}")
+    signature = request.headers.get('X-Hub-Signature-256')
+    logger.info(f"Received webhook. Event: {request.headers.get('X-GitHub-Event')}")
+    logger.info(f"Delivery ID: {request.headers.get('X-GitHub-Delivery')}")
+    logger.info(f"Received signature: {signature}")
+    logger.info(f"Received headers: {request.headers}")
+    logger.info(f"Received payload: {request.json}")
 
-    # if not verify_signature(request.data, SECRET, signature):
-    #    logger.warning("Invalid signature or missing signature header")
-    #    abort(400, "Invalid signature")
+    if not verify_signature(request.data, SECRET, signature):
+        logger.warning("Invalid signature or missing signature header")
+        return jsonify({"error": "Invalid signature"}), 400
 
     logger.info("Received webhook with valid signature")
 
@@ -37,21 +40,23 @@ def webhook():
         result = subprocess.run(['/opt/youtubeWebDownload/deploy.sh'],
                                 capture_output=True, text=True, check=True)
         logger.info(f"Deployment output: {result.stdout}")
-        return 'Deployed successfully', 200
+        return jsonify({"message": "Deployed successfully", "output": result.stdout}), 200
     except subprocess.CalledProcessError as e:
         logger.error(f"Deployment failed with error: {e.stderr}")
-        return f"Deployment failed: {e.stderr}", 500
+        logger.exception("Full traceback:")
+        return jsonify({"error": "Deployment failed", "details": e.stderr}), 500
     except Exception as e:
         logger.error(f"Unexpected error during deployment: {str(e)}")
-        return f"Unexpected error: {str(e)}", 500
+        logger.exception("Full traceback:")
+        return jsonify({"error": "Unexpected error", "details": str(e)}), 500
 
 @app.errorhandler(400)
 def bad_request(e):
-    return str(e), 400
+    return jsonify({"error": str(e)}), 400
 
 @app.errorhandler(500)
 def internal_server_error(e):
-    return str(e), 500
+    return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     logger.info("Starting webhook server...")
