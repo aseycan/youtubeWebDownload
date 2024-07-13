@@ -2,8 +2,8 @@
 
 # Variables
 REPO_DIR="/opt/youtubeWebDownload"
-SOCK_FILE="/opt/youtubeWebDownload/youtubeWebDownload.sock"
-GUNICORN_SERVICE="gunicorn.service"
+APP_SOCK_FILE="/opt/youtubeWebDownload/app.sock"
+WEBHOOK_SOCK_FILE="/opt/youtubeWebDownload/webhook.sock"
 
 echo "Deploy script started..."
 
@@ -20,13 +20,21 @@ git pull origin master
 source venv/bin/activate
 pip install -r requirements.txt
 
-# Restart Gunicorn
-echo "Restarting Gunicorn..."
-if [ -f $SOCK_FILE ]; then
-    pkill gunicorn
+# Restart Gunicorn for app.py
+echo "Restarting Gunicorn for app.py..."
+if [ -f $APP_SOCK_FILE ]; then
+    pkill -f "gunicorn --workers 3 --bind unix:$APP_SOCK_FILE"
 fi
 
-nohup gunicorn --workers 3 --bind unix:$SOCK_FILE -m 007 app:app > gunicorn.log 2>&1 &
+nohup gunicorn --workers 3 --bind unix:$APP_SOCK_FILE -m 007 app:app > gunicorn_app.log 2>&1 &
+
+# Restart Gunicorn for webhook_server.py
+echo "Restarting Gunicorn for webhook_server.py..."
+if [ -f $WEBHOOK_SOCK_FILE ]; then
+    pkill -f "gunicorn --workers 3 --bind unix:$WEBHOOK_SOCK_FILE"
+fi
+
+nohup gunicorn --workers 3 --bind unix:$WEBHOOK_SOCK_FILE -m 007 webhook_server:app > gunicorn_webhook.log 2>&1 &
 
 # Restart Nginx to apply any new configurations
 echo "Restarting Nginx..."
