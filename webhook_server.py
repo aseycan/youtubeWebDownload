@@ -34,7 +34,7 @@ def webhook():
 
     try:
         # Deploy script'ini çalıştır
-        result = subprocess.run(['/root/youtubeWebDownload/deploy.sh'],
+        result = subprocess.run(['/opt/youtubeWebDownload/deploy.sh'],  # deploy.sh yolunu düzelttik
                                 capture_output=True, text=True, check=True)
         logger.info(f"Deployment output: {result.stdout}")
         return 'Deployed successfully', 200
