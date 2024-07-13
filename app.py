@@ -4,7 +4,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 import asyncio
 import schedule
-from flask import Flask, render_template, request, send_file, jsonify, url_for
+from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -51,35 +51,10 @@ async def handle_post_request():
 
     try:
         app.logger.info(f"Downloading video from URL: {url} with options: {ydl_opts}")
-        info, temp_filename = await download_video(url, ydl_opts)
-
-        original_filename = os.path.basename(temp_filename)
-        sanitized_filename = sanitize_filename(original_filename)
-
-        file_extension = os.path.splitext(original_filename)[1]
-        unique_filename = f"{sanitized_filename}_{uuid.uuid4().hex[:8]}{file_extension}"
-
-        full_file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
-
-        os.rename(temp_filename, full_file_path)
-        app.logger.info(f"Dosya indirme yolu: {full_file_path}")
-
-        file_url = url_for('download_file', filename=unique_filename, _external=True)
-        return jsonify({
-            'url': file_url,
-            'filename': unique_filename,
-            'title': info.get('title'),
-            'duration': info.get('duration'),
-            'thumbnail': info.get('thumbnail'),
-            'status': 'İndirme tamamlandı!'
-        })
+        return await download_video(url, ydl_opts)
     except Exception as e:
         app.logger.error(f"İndirme hatası: {str(e)}")
         return jsonify({'error': f'Video indirme sırasında bir hata oluştu: {str(e)}'}), 500
-
-@app.route('/download/<path:filename>')
-def download_file(filename):
-    return send_file(os.path.join(app.config['UPLOAD_FOLDER'], filename), as_attachment=True)
 
 @app.route('/preview', methods=['POST'])
 async def preview():

@@ -3,6 +3,7 @@ import re
 import asyncio
 import yt_dlp
 from werkzeug.utils import secure_filename
+from flask import Response
 import uuid
 from urllib.parse import quote as url_quote
 
@@ -10,11 +11,9 @@ def is_valid_youtube_url(url):
     youtube_regex = r'(https?://)?(www\.)?(youtube|youtu|youtube-nocookie)\.(com|be)/(watch\?v=|embed/|v/|.+\?v=)?([^&=%\?]{11})'
     return re.match(youtube_regex, url) is not None
 
-
 def sanitize_filename(filename):
     filename = re.sub(r'[<>:"/\\|?*]', '', filename)
     return filename[:50]
-
 
 async def download_video(url, ydl_opts):
     loop = asyncio.get_event_loop()
@@ -24,8 +23,21 @@ async def download_video(url, ydl_opts):
             raise ValueError("Video bilgileri alınamadı.")
 
         filename = ydl.prepare_filename(info)
-        return info, filename
 
+        def generate():
+            with open(filename, 'rb') as f:
+                while chunk := f.read(8192):
+                    yield chunk
+
+        response = Response(generate(), headers={
+            'Content-Disposition': f'attachment; filename="{sanitize_filename(info["title"])}.mp4"',
+            'Content-Type': 'video/mp4'
+        })
+
+        # Cleanup: Remove the file after sending it
+        os.remove(filename)
+
+        return response
 
 def prepare_download_options(quality, format, upload_folder):
     ydl_opts = {
