@@ -23,6 +23,8 @@ def verify_signature(payload_body, secret_token, signature_header):
 @app.route('/webhook', methods=['POST'])
 def webhook():
     # signature = request.headers.get('X-Hub-Signature-256')
+    # logger.info(f"Received signature: {signature}")
+    # logger.info(f"Received payload: {request.data}")
 
     # if not verify_signature(request.data, SECRET, signature):
     #    logger.warning("Invalid signature or missing signature header")
