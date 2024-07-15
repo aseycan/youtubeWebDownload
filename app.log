@@ -24,3 +24,12 @@ Beklenmeyen hata: [Errno 22] Invalid argument
 Beklenmeyen hata: prepare_download_options() missing 1 required positional argument: 'upload_folder'
 Beklenmeyen hata: prepare_download_options() missing 1 required positional argument: 'upload_folder'
 Beklenmeyen hata: prepare_download_options() missing 1 required positional argument: 'upload_folder'
+Beklenmeyen hata: name 'yt_dlp' is not defined
+Beklenmeyen hata: name 'yt_dlp' is not defined
+�ndirme hatas�: expected str, bytes or os.PathLike object, not Response
+Beklenmeyen hata: ERROR: [generic] '�ndirme i�lemi s�ras�nda bir hata olu�tu: Unexpected token \'<\', "<html> <h"... is not valid JSON' is not a valid URL. Set --default-search "ytsearch" (or run  yt-dlp "ytsearch:�ndirme i�lemi s�ras�nda bir hata olu�tu: Unexpected token '<', "<html> <h"... is not valid JSON" ) to search YouTube
+�ndirme hatas�: Video indirme hatas�: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
