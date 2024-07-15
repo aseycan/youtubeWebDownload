@@ -29,3 +29,8 @@ Beklenmeyen hata: name 'yt_dlp' is not defined
 Beklenmeyen hata: name 'yt_dlp' is not defined
 Ýndirme hatasý: expected str, bytes or os.PathLike object, not Response
 Beklenmeyen hata: ERROR: [generic] 'Ýndirme iþlemi sýrasýnda bir hata oluþtu: Unexpected token \'<\', "<html> <h"... is not valid JSON' is not a valid URL. Set --default-search "ytsearch" (or run  yt-dlp "ytsearch:Ýndirme iþlemi sýrasýnda bir hata oluþtu: Unexpected token '<', "<html> <h"... is not valid JSON" ) to search YouTube
+Ýndirme hatasý: Video indirme hatasý: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
