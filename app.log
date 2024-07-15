@@ -26,9 +26,10 @@ Beklenmeyen hata: prepare_download_options() missing 1 required positional argum
 Beklenmeyen hata: prepare_download_options() missing 1 required positional argument: 'upload_folder'
 Beklenmeyen hata: name 'yt_dlp' is not defined
 Beklenmeyen hata: name 'yt_dlp' is not defined
-ï¿½ndirme hatasï¿½: expected str, bytes or os.PathLike object, not Response
-Beklenmeyen hata: ERROR: [generic] 'ï¿½ndirme iï¿½lemi sï¿½rasï¿½nda bir hata oluï¿½tu: Unexpected token \'<\', "<html> <h"... is not valid JSON' is not a valid URL. Set --default-search "ytsearch" (or run  yt-dlp "ytsearch:ï¿½ndirme iï¿½lemi sï¿½rasï¿½nda bir hata oluï¿½tu: Unexpected token '<', "<html> <h"... is not valid JSON" ) to search YouTube
-ï¿½ndirme hatasï¿½: Video indirme hatasï¿½: Working outside of request context.
+Beklenmeyen hata: name 'yt_dlp' is not defined
+Ýndirme hatasý: expected str, bytes or os.PathLike object, not Response
+Beklenmeyen hata: ERROR: [generic] 'Ýndirme iþlemi sýrasýnda bir hata oluþtu: Unexpected token \'<\', "<html> <h"... is not valid JSON' is not a valid URL. Set --default-search "ytsearch" (or run  yt-dlp "ytsearch:Ýndirme iþlemi sýrasýnda bir hata oluþtu: Unexpected token '<', "<html> <h"... is not valid JSON" ) to search YouTube
+Ýndirme hatasý: Video indirme hatasý: Working outside of request context.
 
 This typically means that you attempted to use functionality that needed
 an active HTTP request. Consult the documentation on testing for
