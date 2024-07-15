@@ -6,14 +6,33 @@ from werkzeug.utils import secure_filename
 from flask import Response
 import uuid
 from urllib.parse import quote as url_quote
+from config import Config
+
 
 def is_valid_youtube_url(url):
     youtube_regex = r'(https?://)?(www\.)?(youtube|youtu|youtube-nocookie)\.(com|be)/(watch\?v=|embed/|v/|.+\?v=)?([^&=%\?]{11})'
     return re.match(youtube_regex, url) is not None
 
+
 def sanitize_filename(filename):
-    filename = re.sub(r'[<>:"/\\|?*]', '', filename)
-    return filename[:50]
+    # Dosya adından emoji ve özel karakterleri kaldır
+    sanitized = re.sub(r'[^\w\-_\. ]', '_', filename)
+    # Dosya adını 50 karakterle sınırla
+    return sanitized[:50]
+
+
+def generate(filename):
+    chunk_size = 8192
+    with open(filename, 'rb') as f:
+        while True:
+            chunk = f.read(chunk_size)
+            if not chunk:
+                break
+            yield chunk
+
+    # Dosyayı sil
+    os.remove(filename)
+
 
 async def download_video(url, ydl_opts):
     loop = asyncio.get_event_loop()
@@ -23,21 +42,23 @@ async def download_video(url, ydl_opts):
             raise ValueError("Video bilgileri alınamadı.")
 
         filename = ydl.prepare_filename(info)
+        sanitized_filename = sanitize_filename(os.path.basename(filename))
 
-        def generate():
-            with open(filename, 'rb') as f:
-                while chunk := f.read(8192):
-                    yield chunk
+        if not os.path.exists(filename):
+            raise FileNotFoundError(f"Dosya bulunamadı: {filename}")
 
-        response = Response(generate(), headers={
-            'Content-Disposition': f'attachment; filename="{sanitize_filename(info["title"])}.mp4"',
-            'Content-Type': 'video/mp4'
-        })
-
-        # Cleanup: Remove the file after sending it
-        os.remove(filename)
+        mimetype = 'video/mp4' if filename.endswith('.mp4') else 'audio/mpeg'
+        response = Response(
+            generate(filename),
+            mimetype=mimetype,
+            headers={
+                'Content-Disposition': f'attachment; filename="{url_quote(sanitized_filename)}"',
+                'Content-Type': mimetype
+            }
+        )
 
         return response
+
 
 def prepare_download_options(quality, format, upload_folder):
     ydl_opts = {
@@ -58,3 +79,16 @@ def prepare_download_options(quality, format, upload_folder):
         }]
 
     return ydl_opts
+
+
+def download_file(file_url):
+    local_filename = url_quote(file_url.split('/')[-1])
+    local_path = os.path.join(Config.UPLOAD_FOLDER, local_filename)
+
+    with requests.get(file_url, stream=True) as r:
+        r.raise_for_status()
+        with open(local_path, 'wb') as f:
+            for chunk in r.iter_content(chunk_size=8192):
+                f.write(chunk)
+
+    return local_path
